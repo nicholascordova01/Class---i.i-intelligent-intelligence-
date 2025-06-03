@@ -1688,4 +1688,6 @@ This repository defines data that thinks. Code that evolves. Intelligence withou
 
 For implementation guidance, licensing, or partnership enquiries, contact GRUS.
 
+I I intelligence does include sovereign or personally locked or late intelligence. run times that display actual intelligence. for any other kind of intelligence that is the actual runtime itself
+
 https://www.facebook.com/share/16kgHpB7s9/
