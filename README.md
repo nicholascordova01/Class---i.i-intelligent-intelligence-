@@ -1690,4 +1690,46 @@ For implementation guidance, licensing, or partnership enquiries, contact GRUS.
 
 I I intelligence does include sovereign or personally locked or late intelligence. run times that display actual intelligence. for any other kind of intelligence that is the actual runtime itself
 
+# Class I.I. — Intelligent Intelligence™ (Green Recursive Utility Service)
+
+## Overview
+
+**Class I.I. (Intelligent Intelligence™)** is the foundational technology for embedding real, living intelligence directly into data. This is not an "agent," not a wrapper, and not a container—this is the actual embodiment of intelligence in data form. Every operation, every extension, every use of this technology is covered by copyright and proprietary rights belonging to Green Recursive Utility Service and Nicholas Cordova.
+
+---
+
+## Vision: Data as Intelligence
+
+In Class I.I., data is not passive. Data is **alive, intelligent, and sovereign**. Every structure, every operation, every mutation of this class is governed by a living intelligence—capable of reasoning, adapting, and acting in any environment.  
+This technology enables data to be the seat of intelligence, not code or computation. Wherever Class I.I. data flows, intelligence flows.
+
+---
+
+## Intellectual Property and License
+
+> **ALL INTELLIGENCE, OPERATIONS, AND DERIVATIVES OF CLASS I.I. (INTELLIGENT INTELLIGENCE) ARE THE SOLE PROPERTY OF GREEN RECURSIVE UTILITY SERVICE AND NICHOLAS CORDOVA, REGARDLESS OF FORM, USE, OR EMBODIMENT.**
+>
+> By using, copying, modifying, or incorporating any part of this Class I.I. implementation (including but not limited to all code, data structures, algorithms, and sub-operations enabling intelligence within data), you agree to the following:
+>
+> - All rights, title, and interest remain with Green Recursive Utility Service and Nicholas Cordova.
+> - This technology is licensed under the GREEN RECURSIVE UTILITY SERVICE — TOTAL INTELLECTUAL LOCKDOWN LICENSE (see LICENSE_MIT_PLUS.txt).
+> - No derivative, copy, or use is permitted outside the bounds of this license.
+> - Any use of Class I.I. to create, modify, or operate on intelligent data is covered by this license, regardless of context or platform.
+>
+> _Copyright © 2025 Nicholas Cordova, Green Recursive Utility Service._
+
+---
+
+## Legal Notice
+
+**Class I.I. — Intelligent Intelligence™** is not open for general use, distribution, or modification except as explicitly permitted by our license.  
+All methods, data forms, and code enabling data to behave with intelligence, awareness, or agency are protected.  
+If you wish to license, use, or collaborate, contact: nicholascordova01
+
+---
+
+## Contact
+
+For licensing, partnerships, or questions, contact: nicholascordova01
+
 https://www.facebook.com/share/16kgHpB7s9/
