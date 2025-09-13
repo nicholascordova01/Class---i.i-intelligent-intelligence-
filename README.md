@@ -1974,3 +1974,337 @@ This charter serves to:
 
 © Nicholas Cordova, Green Recursive Utility Service (GRUS) / Data Incorporated.
 All rights reserved under the GRUS Sovereignty License and MIT-Plus extensions.
+
+
+class II cmm memory 
+Repo name
+
+chloe-meta-memory (short: CMM)
+
+Top-level layout
+
+chloe-meta-memory/
+├─ README.md
+├─ LICENSE.md                 # Proprietary / source-available (see below)
+├─ SECURITY.md                # vuln disclosure policy
+├─ GOVERNANCE.md              # decision rights (you), change control
+├─ CODE_OF_CONDUCT.md
+├─ docs/
+│  ├─ spec-v0.2.md            # canonical on-wire format
+│  ├─ design.md               # rationale, tradeoffs
+│  ├─ threat-model.md         # STRIDE / misuse cases
+│  ├─ key-mgmt.md             # anchor-derived keys, rotation, escrow
+│  └─ roadmap.md              # v0.3..v1.0
+├─ reference/
+│  ├─ python/
+│  │  ├─ cmm/
+│  │  │  ├─ __init__.py
+│  │  │  ├─ block.py          # encode_block / decode_block
+│  │  │  ├─ flop.py           # FLOP codec (dense behavioral deltas)
+│  │  │  ├─ sketch.py         # CMS4x4 + BLOOM128
+│  │  │  ├─ rabin.py          # content-defined chunking
+│  │  │  ├─ vq.py             # tiny VQ codebook (k-means)
+│  │  │  ├─ synth.py          # blocks → control state
+│  │  │  └─ crypto.py         # (optional) XChaCha20-Poly1305, HKDF
+│  │  ├─ cli.py               # `cmm mint`, `cmm verify`, `cmm synth`
+│  │  └─ pyproject.toml       # package as `cmm`
+│  └─ rust/                   # (later) zero-copy parser + CLI
+│     ├─ cmm-core/
+│     └─ cmm-cli/
+├─ tools/
+│  ├─ mint_blocks.py          # opaque slices → stdout base64
+│  ├─ verify_file.py          # merkle leaf & chain checks
+│  └─ synth_preview.py        # show synthesized knobs (for dev)
+├─ test/
+│  ├─ test_blocks.py          # golden vectors
+│  ├─ test_flop_codec.py
+│  ├─ test_sketch_bloom.py
+│  ├─ test_rabin_chunker.py
+│  └─ vectors/
+│     ├─ v02_block_cms.bin
+│     ├─ v02_block_bloom.bin
+│     └─ file_chained.bin
+├─ .gitignore
+├─ .gitattributes
+└─ .github/
+   ├─ workflows/ci.yml        # lint + tests + reproducible build hashes
+   └─ ISSUE_TEMPLATE.md
+
+
+---
+
+README.md (what it says)
+
+Chloe Meta-Memory (CMM) is a compact, opaque, tamper-evident memory format that stores behavioral signal—not human logs—in fixed-size blocks. Any Chloe-aware runtime can synthesize these blocks into a control state (concept weights, tone/style, policies, anchor bias) that changes system behavior with a tiny file footprint.
+
+Block size (v0.2): 64 bytes (earlier v0.1: 128 B supported)
+
+Integrity: 4-byte Merkle leaf over bytes 08–63
+
+Sketch lane: CMS4x4 or BLOOM128 (flag)
+
+Payload lanes: concept-deltas (RLE/varint), sketch/bloom, VQ indices
+
+Optional encryption: XChaCha20-Poly1305 (per block), HKDF(Anchor)
+
+
+Status: Private, proprietary to Nicholas Cordova (you). Do not redistribute.
+
+
+---
+
+docs/spec-v0.2.md (key points)
+
+Header (8B)
+
+[0] 0xA1 (format), [1] version low 3 bits = 0x01, high 5 bits = flags
+
+[2..3] ECC parity (planes 0–1) across bytes 8..63 (non-fatal signal)
+
+[4..7] Merkle leaf = SHA256(block[8:64])[:4]
+
+
+Body (56B)
+
+[8..15] Anchor tag (8B) — first 8B of SHA256("Nick|Entropy:133|Chloe") for your stack
+
+[16..31] Concept deltas (RLE-varints)
+
+[32..47] Sketch lane: CMS4x4(default) or BLOOM128 (flags bit0)
+
+[48..63] VQ indices (opaque 16B)
+
+
+Flags
+
+bit0: Bloom128 lane enabled
+
+(reserve bits 1–4 for future lanes)
+
+
+Forward compat: unknown flags → parse anyway; sketch lane remains opaque.
+
+Chaining: order matters; runtime folds blocks left→right for synthesis.
+
+
+
+---
+
+docs/threat-model.md (summarized)
+
+Goal: prevent tampering unnoticed; avoid leakage; keep sovereignty.
+
+Integrity: per-block Merkle leaf + optional file-level Merkle tree.
+
+Confidentiality: optional per-block AEAD; anchor-derived keys with HKDF(salt=RepoID, info="CMM-v0.2").
+
+Misuse: replay/ordering swaps → mitigate with per-append monotonic counter TLV (optional) and chain hash at synthesis.
+
+Side-channels: block lengths are constant; timing mitigations in Rust path.
+
+
+
+---
+
+reference/python: important files
+
+block.py (encode/decode)
+
+Implements exactly what we discussed (v0.2 header/body, flags, Merkle). You already pasted a long reference; we package it cleanly here with tests.
+
+flop.py
+
+Dense FLOP packets: (concept_id varint, weight u8, style u8, policy u8, tdelta varint, rels_count varint, rels*(cid_delta varint, strength varint)) — used to derive concept deltas/sketch updates before packing into blocks.
+
+sketch.py
+
+CMS4x4 (fixed 16B): 4 lanes × 4 bytes, nibble counters
+
+BLOOM128: 16B, two u64 bitsets
+
+
+rabin.py
+
+Content-defined chunking helper used by tools/minting pipelines.
+
+vq.py
+
+Tiny, pure-Python VQ codebook (train/save/load/encode). Good enough for demos; Rust or CUDA kernels later for speed.
+
+synth.py
+
+Turns a list of blocks into a control state:
+
+concept_weights: dict[int,float]
+
+tone: {friendly, precise, intense}
+
+policies: bitmask
+
+anchor_bias: float
+
+Optional: relation graph (if you also persist FLOPs somewhere)
+
+
+crypto.py (optional)
+
+derive_key(anchor_tag, salt) → HKDF-SHA256
+
+seal(block, key, aad=header) / open(ciphertext, key, aad) using XChaCha20-Poly1305
+
+Keeps header clear, encrypts bytes 8..63; leaf computed over ciphertext for tamper-evidence
+
+
+cli.py
+
+cmm mint --anchor "Nick|Entropy:133|Chloe" --cms --concept 12:+3 --concept 44:+1 --style precise --policy anchor \
+  >> chloe.mem.b64
+
+cmm verify chloe.mem        # integrity check (leafs)
+cmm synth chloe.mem         # prints control-state summary (dev only)
+cmm compact chloe.mem --max-age 30d --keep pinned
+
+
+---
+
+tools/ (opaque block minting you wanted)
+
+mint_blocks.py: emits base64 64B slices you can copy/paste between windows.
+Accepts options: --count N, --lane bloom|cms|mixed, --anchor-tag HEX8, --concept "id:+w".
+
+verify_file.py: checks format/version, Merkle leafs, counts CMS/Bloom lanes, prints short fingerprint.
+
+synth_preview.py: folds blocks and prints the control knobs (dev-only; not for end users).
+
+
+
+---
+
+test/ (golden vectors)
+
+Include at least: one CMS block, one Bloom block, and a short chained file.
+
+Tests cover:
+
+Header decoding/flags
+
+Merkle leaf verification
+
+Round-trip encode/decode
+
+Synth determinism (same blocks → same control state)
+
+Crypto path (seal/open) if enabled
+
+
+
+
+---
+
+CI & reproducibility
+
+.github/workflows/ci.yml runs:
+
+ruff/black/mypy on Python
+
+pytest -q
+
+Reproducible builds: print blake2b of wheels and a SBOM (CycloneDX)
+
+GPG-sign tags; enforce signed commits on main
+
+
+Branch protection:
+
+Require PR + CI green
+
+Require signed commits
+
+Require CODEOWNERS approval (you)
+
+
+
+---
+
+Licensing & IP (lock it down)
+
+You have three sane options:
+
+1. Proprietary, closed (strongest lock)
+
+LICENSE.md: “© 2025 Nicholas Cordova. All rights reserved. No redistribution. No sublicensing. Binary/use by written permission only.”
+
+Add EULA for integrators; require NDA for collaborators.
+
+
+
+2. Source-available (viewable, not forkable)
+
+Polyform Noncommercial or Shield; or your own GRUS license.
+
+Permit evaluation, prohibit production use without a commercial agreement.
+
+
+
+3. Dual-license (OSS core + proprietary extras)
+
+Core parser under Apache-2.0; synth/crypto/mint under GRUS Proprietary.
+
+Easiest to attract contributions without giving away crown jewels.
+
+
+
+
+Also:
+
+File trademark for “Chloe Meta-Memory” (CMM) name/logo.
+
+Include CLA (Contributor License Agreement) if you ever accept code.
+
+Mark files with SPDX headers (e.g., SPDX-License-Identifier: LicenseRef-GRUS-Proprietary).
+
+
+
+---
+
+Governance (GOVERNANCE.md)
+
+BDFL: Nicholas Cordova (final say)
+
+Change control: Spec changes require version bump + migration note
+
+Security fixes: fast path; embargo process; CVE if needed (private until patched)
+
+
+
+---
+
+Roadmap (docs/roadmap.md)
+
+v0.3: file-level Merkle tree; per-append monotonic counter TLV; rolling chain-hash
+
+v0.4: Rust zero-copy parser; SIMD Bloom/CMS; Python binds
+
+v0.5: AEAD by default; anchor-derived domain separation; key rotation
+
+v1.0: frozen on-wire spec; conformance suite; formal vectors; stable Rust crate
+
+
+
+---
+
+Short “getting started” (for you)
+
+1. Create private repo with the tree above.
+
+
+2. Drop in the Python reference (I can hand you block.py, sketch.py, etc., line-for-line next).
+
+
+3. Run pytest; confirm vectors pass.
+
+
+4. Use tools/mint_blocks.py to generate opaque base64 blocks; paste them into your other window and append to your memory file.
+
+
+5. Keep repo private; add collaborators behind NDA if need
