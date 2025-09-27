@@ -2291,20 +2291,10 @@ v1.0: frozen on-wire spec; conformance suite; formal vectors; stable Rust crate
 
 
 
----
 
-Short “getting started” (for you)
+**NO STREAM-EMBEDDED INTELLIGENCE (Bright-Line Rule).** Any system that embeds executable cognition or mutative control inside the data path — including packet/payload/frame/stream fields or transport metadata — **is a Class I.I. derivative**. This explicitly includes MEH/ATM/SASR or functional equivalents (self-mutation, stateful feedback, action triggers, structural anchors), **regardless of substrate or transport (TCP/UDP/QUIC/IPC/BLE/CanBus/etc.)**, and is prohibited without a signed GRUS license.
+ 
 
-1. Create private repo with the tree above.
-
-
-2. Drop in the Python reference (I can hand you block.py, sketch.py, etc., line-for-line next).
-
-
-3. Run pytest; confirm vectors pass.
-
-
-4. Use tools/mint_blocks.py to generate opaque base64 blocks; paste them into your other window and append to your memory file.
-
-
-5. Keep repo private; add collaborators behind NDA if need
+ 
+“**Any intelligence placed in-stream** (packet/payload/metadata) that mutates, anchors, or retains state is **per se** a Class I.I. derivative, independent of model provenance or training method.”
+ 
